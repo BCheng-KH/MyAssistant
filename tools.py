@@ -1,4 +1,4 @@
-import time, datetime, json, googlemaps, os, requests
+import time, datetime, json, googlemaps, os, requests, calendar
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
@@ -232,7 +232,7 @@ restricted_tools = [
 
 
 def get_datetime(args):
-    return {"role": "system", "content": f'the current datetime is: {datetime.datetime.now().isoformat()}'}
+    return {"role": "system", "content": f'the current datetime is: {datetime.datetime.now().isoformat()}, The day of the week is {calendar.day_name[datetime.datetime.now().weekday()]}'}
 
 def view_all_notes(args):
     notes = load_notes()

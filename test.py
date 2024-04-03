@@ -5,7 +5,8 @@
 
 # print(json.loads(""))
 
-# import time, datetime, json, googlemaps, os
+import time, datetime, json, googlemaps, os, calendar
+print(calendar.day_name[datetime.datetime.now().weekday()])
 # from dotenv import load_dotenv
 # load_dotenv(override=True)
 # now = datetime.datetime.now() + datetime.timedelta(hours=4.7)
