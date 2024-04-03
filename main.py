@@ -48,16 +48,16 @@ def listen_for_wake_word(audio):
         speak('Listening')
         listening_for_wake_word = False
 
-
-
+#model = "gpt-3.5-turbo-0125"
+model = "gpt-4-0125-preview"
 def gpt_chat_loop(question):
-    global messages
+    global messages, model
     messages.append({"role": "user", "content": question})
     response = None
     clear_history = False
     while response == None or response.choices[0].message.content == None:
         response = client.chat.completions.create(
-            model="gpt-4-0125-preview",
+            model=model,
             messages=messages,
             temperature=0.5,
             max_tokens=500,
@@ -75,7 +75,7 @@ def gpt_chat_loop(question):
         messages.append({"role": "system", "content": "Once you have executed all the nessesary functions, or need to prompt the user for more information, please provide the user with a textual response."})
     response_text = response.choices[0].message.content
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model=model,
         messages=messages,
         temperature=0.5,
         max_tokens=500,
@@ -84,7 +84,7 @@ def gpt_chat_loop(question):
     )
     spoken_response = json.loads(response.choices[0].message.tool_calls[0].function.arguments)["text"]
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model=model,
         messages=messages,
         temperature=0.5,
         max_tokens=500,

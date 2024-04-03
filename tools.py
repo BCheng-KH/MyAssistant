@@ -1,10 +1,11 @@
-import time, datetime, json, googlemaps, os
+import time, datetime, json, googlemaps, os, requests
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
 gmaps = googlemaps.Client(key=os.environ["GOOGLE_MAPS_API_KEY"])
 home=os.environ["HOME_ADDRESS"]
 campus=os.environ["CAMPUS_ADDRESS"]
+weather_key=os.environ["WEATHER_API_KEY"]
 
 def load_notes():
     with open("Notes.json", "r") as f:
@@ -69,7 +70,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "clear_chat_history",
-            "description": "Clears the chat history and resets the conversation. Once this function is called, the chat history will be cleared as soon as all remaining actions are finished. you only need to call this function once.",
+            "description": "Clears the chat history and resets the conversation. Once this function is called, the chat history will be cleared as soon as all remaining actions are finished. you only need to call this function once. ONLY CALL THIS FUNCTION IF ASKED TO DO SO BY THE USER!!!",
         }
     },
     {
@@ -171,6 +172,23 @@ tools = [
             },
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "check_weather",
+            "description": "Returns weather details",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location_query": {
+                        "type": "string",
+                        "description": "the location to check the weather. specify place, province, country etc. if this parameter isn't provided, will default to where the user lives.",
+                    },
+                },
+                "required": [],
+            },
+        }
+    },
 ]
 
 restricted_tools = [
@@ -185,7 +203,7 @@ restricted_tools = [
                     "wait_for_followup": {
                         "type": "string",
                         "enum": ["True", "False"],
-                        "description": "whether or not expecting a follow up response from the user",
+                        "description": "whether or not expecting a follow up response from the user. Only expect a follow up if you have a reason to and have specificly asked the user for followup",
                     },
                 },
                 "required": ["wait_for_followup"],
@@ -196,7 +214,7 @@ restricted_tools = [
         "type": "function",
         "function": {
             "name": "speak",
-            "description": "reads a text out loud, used to provide an appreviation of the textual output through audio",
+            "description": "reads a text out loud, used to provide an appreviation of the textual output through audio. Please stay consistent with the question asked and the textual output you provided!",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -229,6 +247,7 @@ def edit_notes_object(args):
 def delete_notes_object(args):
     delete_note(args["id"])
     return {"role": "system", "content": f'The note has been deleted'}
+ 
 
 def check_bus_departure_time(args):
     try:
@@ -243,7 +262,14 @@ def check_bus_departure_time(args):
         return {"role": "system", "content": f'The next bus is number {bus_line}, and will arrive at {bus_departure_time}. The user should leave the house at {overall_departure_time}.'}
     except:
         return {"role": "system", "content": f'no suitable bus line was found.'}
-
+def check_weather(args):
+    if "location_query" in args:
+        query = args["location_query"]
+    else:
+        query = "Kingston ON"
+    r = requests.get(f'http://api.weatherapi.com/v1/current.json?key={weather_key}&q={query}&aqi=no')
+    return {"role": "system", "content": f'Here is the current weather in json format: {json.dumps(r.json())}'}
+   
 
 
 
@@ -255,6 +281,7 @@ tool_functions = {
     "edit_notes_object": edit_notes_object,
     "delete_notes_object": delete_notes_object,
     "check_bus_departure_time": check_bus_departure_time,
+    "check_weather": check_weather,
 }
 
 tool_functions
